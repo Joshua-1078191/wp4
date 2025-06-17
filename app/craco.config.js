@@ -1,3 +1,5 @@
+const path = require('path');
+
 module.exports = {
   webpack: {
     configure: (webpackConfig) => {
@@ -7,10 +9,17 @@ module.exports = {
       );
       
       if (htmlWebpackPlugin) {
-        htmlWebpackPlugin.options.template = './src/index.html';
+        htmlWebpackPlugin.options.template = path.resolve(__dirname, 'src/index.html');
+        // Override the public path
+        webpackConfig.output.publicPath = '/';
       }
       
       return webpackConfig;
     },
+  },
+  // Override the paths configuration
+  paths: {
+    appPublic: path.resolve(__dirname, 'src'),
+    appHtml: path.resolve(__dirname, 'src/index.html'),
   },
 }; 
