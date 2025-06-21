@@ -20,6 +20,7 @@ function Bronnen() {
       if (zoekTerm) params.append('search', zoekTerm);
       if (typeFilter) params.append('type_filter', typeFilter);
       if (categorieFilter) params.append('category_filter', categorieFilter);
+
       const response = await fetch(`http://localhost:8000/bronnen?${params}`);
       if (response.ok) {
         const data = await response.json();
@@ -32,6 +33,55 @@ function Bronnen() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleBeoordeel = async (bronId, beoordeling) => {
+    try {
+      const response = await fetch(`http://localhost:8000/bronnen/${bronId}/beoordeel`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ rating: beoordeling }),
+      });
+      if (response.ok) {
+        haalBronnenOp();
+      }
+    } catch (error) {
+      console.error('Fout bij beoordelen van bron:', error);
+    }
+  };
+
+  const handleFavoriet = async (bronId) => {
+    try {
+      const response = await fetch(`http://localhost:8000/bronnen/${bronId}/favoriet`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      if (response.ok) {
+        haalBronnenOp();
+      }
+    } catch (error) {
+      console.error('Fout bij favoriet toevoegen:', error);
+    }
+  };
+
+  const getTypeIcoon = (type) => {
+    switch (type) {
+      case 'boek': return '📚';
+      case 'video': return '🎥';
+      case 'artikel': return '📄';
+      case 'cursus': return '🎓';
+      default: return '📖';
+    }
+  };
+
+  const renderSterren = (gemiddeldeBeoordeling) => {
+    if (!gemiddeldeBeoordeling) return 'Nog geen beoordelingen';
+    const sterren = '⭐'.repeat(Math.round(gemiddeldeBeoordeling));
+    return `${sterren} (${gemiddeldeBeoordeling.toFixed(1)})`;
   };
 
   if (loading) {
@@ -89,12 +139,82 @@ function Bronnen() {
       <div className="bronnen-grid">
         {bronnen.length === 0 ? (
           <div className="geen-bronnen">
-            <p>Geen bronnen gevonden.</p>
+            <p>Geen bronnen gevonden. Wees de eerste om een bron te delen!</p>
           </div>
         ) : (
           bronnen.map((bron) => (
             <div key={bron.id} className="bron-kaart">
+              <div className="bron-header">
+                <span className="bron-type-icoon">{getTypeIcoon(bron.type)}</span>
+                <span className="bron-type">{bron.type}</span>
+              </div>
+              
               <h3 className="bron-titel">{bron.title}</h3>
+              
+              {bron.description && (
+                <p className="bron-beschrijving">{bron.description}</p>
+              )}
+              
+              <div className="bron-meta">
+                <span className="bron-auteur">door {bron.user_display_name}</span>
+                <span className="bron-datum">
+                  {new Date(bron.created_at).toLocaleDateString('nl-NL')}
+                </span>
+              </div>
+              
+              {bron.category && (
+                <span className="bron-categorie">{bron.category}</span>
+              )}
+              
+              {bron.tags && (
+                <div className="bron-tags">
+                  {bron.tags.split(',').map((tag, index) => (
+                    <span key={index} className="tag">{tag.trim()}</span>
+                  ))}
+                </div>
+              )}
+              
+              <div className="bron-statistieken">
+                <div className="beoordeling-sectie">
+                  <span className="beoordeling-tekst">{renderSterren(bron.average_rating)}</span>
+                  <span className="beoordeling-aantal">({bron.ratings_count} beoordelingen)</span>
+                </div>
+                <div className="favorieten-sectie">
+                  <span className="favorieten-aantal">❤️ {bron.favorites_count}</span>
+                </div>
+              </div>
+              
+              <div className="bron-acties">
+                <div className="beoordeling-knoppen">
+                  {[1, 2, 3, 4, 5].map((beoordeling) => (
+                    <button
+                      key={beoordeling}
+                      onClick={() => handleBeoordeel(bron.id, beoordeling)}
+                      className="beoordeling-btn"
+                    >
+                      {beoordeling}
+                    </button>
+                  ))}
+                </div>
+                
+                <button
+                  onClick={() => handleFavoriet(bron.id)}
+                  className={`favoriet-btn ${bron.is_favorited ? 'favoriet' : ''}`}
+                >
+                  {bron.is_favorited ? '❤️' : '🤍'} Favoriet
+                </button>
+                
+                {bron.url && (
+                  <a
+                    href={bron.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="bekijk-bron-btn"
+                  >
+                    Bekijk Bron
+                  </a>
+                )}
+              </div>
             </div>
           ))
         )}
@@ -103,4 +223,4 @@ function Bronnen() {
   );
 }
 
-export default Bronnen;
+export default Bronnen; 
