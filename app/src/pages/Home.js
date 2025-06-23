@@ -1,32 +1,42 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { getCurrentUser, logout } from '../utils/auth';
 import './Home.css';
 
 function Home() {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const user = localStorage.getItem('user');
-    if (!user) {
+    const currentUser = getCurrentUser();
+    if (!currentUser) {
       navigate('/login');
+      return;
     }
+    setUser(currentUser);
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    navigate('/login');
+    logout();
   };
+
+  if (!user) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="home-container">
       <header className="home-header">
         <h1>Welkom bij RAcademic</h1>
-        <button onClick={handleLogout} className="logout-button">
-          Uitloggen
-        </button>
+        <div className="user-info">
+          <span>Hallo, {user.display_name}!</span>
+          <button onClick={handleLogout} className="logout-button">
+            Uitloggen
+          </button>
+        </div>
       </header>
       <main className="home-content">
-      <div className="welcome-section">
+        <div className="welcome-section">
           <h2>Deel en Ontdek Studiebronnen</h2>
           <p>Maak contact met medestudenten en vind de beste studiematerialen voor je vakken.</p>
         </div>
