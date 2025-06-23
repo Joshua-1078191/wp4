@@ -17,9 +17,20 @@
 .home-header h1 {
   color: white;
   margin: 0;
-  color: #333;
   font-size: 2rem;
   font-weight: 600;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: white;
+}
+
+.user-info span {
+  font-weight: 500;
+  font-size: 1.1rem;
 }
 
 .logout-button {
@@ -158,6 +169,11 @@
   
   .home-header h1 {
     font-size: 1.5rem;
+  }
+  
+  .user-info {
+    flex-direction: column;
+    gap: 10px;
   }
   
   .home-content {
