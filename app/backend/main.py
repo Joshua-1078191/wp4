@@ -1,12 +1,19 @@
-from fastapi import FastAPI, HTTPException, Depends
+from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
 from typing import Optional
 import sqlite3
 import bcrypt
 import re
+import jwt
+from datetime import datetime, timedelta
 
 app = FastAPI()
+
+# JWT Configuration
+SECRET_KEY = "your-secret-key-change-in-production"
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 # Enable CORS
 app.add_middleware(
@@ -136,6 +143,51 @@ def hash_password(password: str) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     return bcrypt.checkpw(plain_password.encode('utf-8'), hashed_password.encode('utf-8'))
 
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+    to_encode = data.copy()
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(minutes=15)
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+    return encoded_jwt
+
+def get_current_user(authorization: Optional[str] = Header(None), db: sqlite3.Connection = Depends(get_db)):
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Authorization header required")
+    
+    try:
+        # Extract token from "Bearer <token>"
+        scheme, token = authorization.split()
+        if scheme.lower() != "bearer":
+            raise HTTPException(status_code=401, detail="Invalid authorization scheme")
+        
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: int = payload.get("user_id")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+        
+        # Verify user exists and is not blocked
+        cursor = db.cursor()
+        cursor.execute("SELECT id, email, display_name, is_blocked FROM users WHERE id = ?", (user_id,))
+        user = cursor.fetchone()
+        
+        if not user:
+            raise HTTPException(status_code=401, detail="User not found")
+        
+        if user[3]:  # is_blocked
+            raise HTTPException(status_code=403, detail="Account is blocked")
+        
+        return {"id": user[0], "email": user[1], "display_name": user[2]}
+    
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(status_code=401, detail="Token has expired")
+    except jwt.JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+    except ValueError:
+        raise HTTPException(status_code=401, detail="Invalid authorization header")
+
 # Routes
 @app.get("/")
 def read_root():
@@ -172,13 +224,13 @@ def register(user: UserCreate, db: sqlite3.Connection = Depends(get_db)):
 @app.post("/login")
 def login(user: UserLogin, db: sqlite3.Connection = Depends(get_db)):
     cursor = db.cursor()
-    cursor.execute("SELECT id, password, is_blocked FROM users WHERE email = ?", (user.email,))
+    cursor.execute("SELECT id, password, is_blocked, display_name FROM users WHERE email = ?", (user.email,))
     result = cursor.fetchone()
     
     if not result:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
-    user_id, hashed_password, is_blocked = result
+    user_id, hashed_password, is_blocked, display_name = result
     
     if is_blocked:
         raise HTTPException(status_code=403, detail="This account is blocked")
@@ -186,16 +238,24 @@ def login(user: UserLogin, db: sqlite3.Connection = Depends(get_db)):
     if not verify_password(user.password, hashed_password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
+    # Create access token
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"user_id": user_id}, expires_delta=access_token_expires
+    )
+    
     return {
         "message": "Login successful",
         "user_id": user_id,
-        "email": user.email
-    } 
-
+        "email": user.email,
+        "display_name": display_name,
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
 
 @app.post("/bronnen", response_model=ResourceResponse)
-def create_resource(resource: ResourceCreate, db: sqlite3.Connection = Depends(get_db)):
-    user_id = 1  
+def create_resource(resource: ResourceCreate, current_user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    user_id = current_user["id"]
     
     cursor = db.cursor()
     cursor.execute(
@@ -206,7 +266,6 @@ def create_resource(resource: ResourceCreate, db: sqlite3.Connection = Depends(g
     
     resource_id = cursor.lastrowid
     
-
     cursor.execute("SELECT display_name FROM users WHERE id = ?", (user_id,))
     user_display_name = cursor.fetchone()[0]
     
@@ -232,23 +291,27 @@ def get_resources(
     search: Optional[str] = None,
     type_filter: Optional[str] = None,
     category_filter: Optional[str] = None,
+    current_user: dict = Depends(get_current_user),
     db: sqlite3.Connection = Depends(get_db)
 ):
     cursor = db.cursor()
+    user_id = current_user["id"]
     
     query = """
         SELECT r.id, r.title, r.description, r.url, r.type, r.category, r.tags, 
                r.user_id, r.created_at, u.display_name,
                AVG(rat.rating) as avg_rating,
                COUNT(DISTINCT rat.id) as ratings_count,
-               COUNT(DISTINCT f.id) as favorites_count
+               COUNT(DISTINCT f.id) as favorites_count,
+               CASE WHEN user_fav.id IS NOT NULL THEN 1 ELSE 0 END as is_favorited
         FROM resources r
         LEFT JOIN users u ON r.user_id = u.id
         LEFT JOIN ratings rat ON r.id = rat.resource_id
         LEFT JOIN favorites f ON r.id = f.resource_id
+        LEFT JOIN favorites user_fav ON r.id = user_fav.resource_id AND user_fav.user_id = ?
     """
     
-    params = []
+    params = [user_id]
     where_conditions = []
     
     if search:
@@ -287,15 +350,15 @@ def get_resources(
             created_at=row[8],
             average_rating=row[10],
             ratings_count=row[11],
-            is_favorited=False,  
+            is_favorited=bool(row[13]),
             favorites_count=row[12]
         ))
     
     return resources
 
 @app.post("/bronnen/{resource_id}/beoordeel")
-def rate_resource(resource_id: int, rating: RatingCreate, db: sqlite3.Connection = Depends(get_db)):
-    user_id = 1  
+def rate_resource(resource_id: int, rating: RatingCreate, current_user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    user_id = current_user["id"]
     
     if not 1 <= rating.rating <= 5:
         raise HTTPException(status_code=400, detail="Beoordeling moet tussen 1 en 5 liggen")
@@ -306,7 +369,6 @@ def rate_resource(resource_id: int, rating: RatingCreate, db: sqlite3.Connection
     if not cursor.fetchone():
         raise HTTPException(status_code=404, detail="Bron niet gevonden")
     
-    
     cursor.execute(
         "INSERT OR REPLACE INTO ratings (resource_id, user_id, rating) VALUES (?, ?, ?)",
         (resource_id, user_id, rating.rating)
@@ -316,26 +378,22 @@ def rate_resource(resource_id: int, rating: RatingCreate, db: sqlite3.Connection
     return {"message": "Beoordeling succesvol bijgewerkt"}
 
 @app.post("/bronnen/{resource_id}/favoriet")
-def toggle_favorite(resource_id: int, db: sqlite3.Connection = Depends(get_db)):
-    user_id = 1  
+def toggle_favorite(resource_id: int, current_user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    user_id = current_user["id"]
     
     cursor = db.cursor()
-    
     
     cursor.execute("SELECT id FROM resources WHERE id = ?", (resource_id,))
     if not cursor.fetchone():
         raise HTTPException(status_code=404, detail="Bron niet gevonden")
     
-    
     cursor.execute("SELECT id FROM favorites WHERE resource_id = ? AND user_id = ?", (resource_id, user_id))
     existing = cursor.fetchone()
     
     if existing:
-        
         cursor.execute("DELETE FROM favorites WHERE resource_id = ? AND user_id = ?", (resource_id, user_id))
         message = "Verwijderd uit favorieten"
     else:
-        
         cursor.execute("INSERT INTO favorites (resource_id, user_id) VALUES (?, ?)", (resource_id, user_id))
         message = "Toegevoegd aan favorieten"
     
