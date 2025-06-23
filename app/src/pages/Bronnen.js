@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { getAuthHeaders, handleApiError } from '../utils/auth';
 import './Bronnen.css';
 
 function Bronnen() {
@@ -21,7 +22,15 @@ function Bronnen() {
       if (typeFilter) params.append('type_filter', typeFilter);
       if (categorieFilter) params.append('category_filter', categorieFilter);
 
-      const response = await fetch(`http://localhost:8000/bronnen?${params}`);
+      const response = await fetch(`http://localhost:8000/bronnen?${params}`, {
+        headers: getAuthHeaders()
+      });
+      
+      if (response.status === 401) {
+        handleApiError({ status: 401 });
+        return;
+      }
+      
       if (response.ok) {
         const data = await response.json();
         setBronnen(data);
@@ -39,11 +48,15 @@ function Bronnen() {
     try {
       const response = await fetch(`http://localhost:8000/bronnen/${bronId}/beoordeel`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify({ rating: beoordeling }),
       });
+      
+      if (response.status === 401) {
+        handleApiError({ status: 401 });
+        return;
+      }
+      
       if (response.ok) {
         haalBronnenOp();
       }
@@ -56,10 +69,14 @@ function Bronnen() {
     try {
       const response = await fetch(`http://localhost:8000/bronnen/${bronId}/favoriet`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
       });
+      
+      if (response.status === 401) {
+        handleApiError({ status: 401 });
+        return;
+      }
+      
       if (response.ok) {
         haalBronnenOp();
       }
