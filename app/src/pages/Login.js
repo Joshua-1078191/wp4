@@ -21,8 +21,14 @@ function Login() {
         password
       });
 
-      // Store user data in localStorage
-      localStorage.setItem('user', JSON.stringify(response.data));
+      // Store user data and token in localStorage
+      const userData = {
+        user_id: response.data.user_id,
+        email: response.data.email,
+        display_name: response.data.display_name,
+        access_token: response.data.access_token
+      };
+      localStorage.setItem('user', JSON.stringify(userData));
       navigate('/home');
     } catch (err) {
       setError(err.response?.data?.detail || 'An error occurred during login');
