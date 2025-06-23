@@ -5,6 +5,7 @@ import Register from './pages/Register';
 import Home from './pages/Home';
 import Bronnen from './pages/Bronnen';
 import BronToevoegen from './pages/BronToevoegen';
+import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
 function App() {
@@ -14,9 +15,21 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/bronnen" element={<Bronnen />} />
-          <Route path="/bron-toevoegen" element={<BronToevoegen />} />
+          <Route path="/home" element={
+            <ProtectedRoute>
+              <Home />
+            </ProtectedRoute>
+          } />
+          <Route path="/bronnen" element={
+            <ProtectedRoute>
+              <Bronnen />
+            </ProtectedRoute>
+          } />
+          <Route path="/bron-toevoegen" element={
+            <ProtectedRoute>
+              <BronToevoegen />
+            </ProtectedRoute>
+          } />
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </div>
