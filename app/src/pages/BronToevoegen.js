@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getAuthHeaders, handleApiError } from '../utils/auth';
 import './BronToevoegen.css';
 
 function BronToevoegen() {
@@ -31,11 +32,14 @@ function BronToevoegen() {
     try {
       const response = await fetch('http://localhost:8000/bronnen', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(formData),
       });
+
+      if (response.status === 401) {
+        handleApiError({ status: 401 });
+        return;
+      }
 
       if (response.ok) {
         navigate('/bronnen');
