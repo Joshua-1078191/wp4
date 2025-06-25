@@ -3,6 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import { getCurrentUser, getAuthHeaders, handleApiError } from '../utils/auth';
 import './Account.css';
 
+const API_BASE = "http://localhost:8000";
+
 function Account() {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
@@ -47,7 +49,7 @@ function Account() {
     setMessage('');
 
     try {
-      const response = await fetch('/api/user/update-name', {
+      const response = await fetch(`${API_BASE}/api/user/update-name`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -66,10 +68,12 @@ function Account() {
         }));
       } else {
         const error = await response.json();
-        setMessage(error.message || 'Er is een fout opgetreden');
+        setMessage(error.detail || error.message || 'Er is een fout opgetreden');
+        console.error('Name update error:', error);
       }
     } catch (error) {
       setMessage('Er is een fout opgetreden bij het bijwerken van je naam');
+      console.error('Name update error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -96,7 +100,7 @@ function Account() {
     setMessage('');
 
     try {
-      const response = await fetch('/api/user/update-password', {
+      const response = await fetch(`${API_BASE}/api/user/update-password`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify({
@@ -115,10 +119,12 @@ function Account() {
         }));
       } else {
         const error = await response.json();
-        setMessage(error.message || 'Er is een fout opgetreden');
+        setMessage(error.detail || error.message || 'Er is een fout opgetreden');
+        console.error('Password update error:', error);
       }
     } catch (error) {
       setMessage('Er is een fout opgetreden bij het bijwerken van je wachtwoord');
+      console.error('Password update error:', error);
     } finally {
       setIsLoading(false);
     }
