@@ -30,9 +30,14 @@ function Home() {
         <h1>Welkom bij RAcademic</h1>
         <div className="user-info">
           <span>Hallo, {user.display_name}!</span>
-          <button onClick={handleLogout} className="logout-button">
-            Uitloggen
-          </button>
+          <div className="user-actions">
+            <Link to="/account" className="account-button">
+              Account
+            </Link>
+            <button onClick={handleLogout} className="logout-button">
+              Uitloggen
+            </button>
+          </div>
         </div>
       </header>
       <main className="home-content">
