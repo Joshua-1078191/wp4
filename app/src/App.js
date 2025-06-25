@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Home from './pages/Home';
+import Account from './pages/Account';
 import Bronnen from './pages/Bronnen';
 import BronToevoegen from './pages/BronToevoegen';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -18,6 +19,11 @@ function App() {
           <Route path="/home" element={
             <ProtectedRoute>
               <Home />
+            </ProtectedRoute>
+          } />
+          <Route path="/account" element={
+            <ProtectedRoute>
+              <Account />
             </ProtectedRoute>
           } />
           <Route path="/bronnen" element={
