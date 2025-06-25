@@ -36,43 +36,46 @@
 .user-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 0;
+  background: rgba(255,255,255,0.15);
+  border-radius: 25px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.account-button, .logout-button {
+  background: transparent;
+  color: white;
+  border: none;
+  padding: 10px 28px;
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: 0;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  outline: none;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .account-button {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 10px 20px;
-  border-radius: 25px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
-  text-decoration: none;
-  display: inline-block;
-}
-
-.account-button:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
-  color: white;
+  border-right: 1px solid rgba(255,255,255,0.25);
+  border-top-left-radius: 25px;
+  border-bottom-left-radius: 25px;
   text-decoration: none;
 }
 
 .logout-button {
-  background: rgba(255, 255, 255, 0.2);
-  color: white;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 10px 20px;
-  border-radius: 25px;
-  cursor: pointer;
-  font-weight: 600;
-  transition: all 0.3s ease;
+  border-top-right-radius: 25px;
+  border-bottom-right-radius: 25px;
 }
 
-.logout-button:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-2px);
+.account-button:hover, .logout-button:hover {
+  background: rgba(255,255,255,0.25);
+  color: white;
+  text-decoration: none;
 }
 
 .home-content {
