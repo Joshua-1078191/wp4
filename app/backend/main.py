@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, constr
 from typing import Optional
 import sqlite3
 import bcrypt
@@ -10,7 +10,6 @@ from datetime import datetime, timedelta
 
 app = FastAPI()
 
-# JWT Configuration
 SECRET_KEY = "your-secret-key-change-in-production"
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -18,13 +17,12 @@ ACCESS_TOKEN_EXPIRE_MINUTES = 30
 # Enable CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Database setup
 def get_db():
     conn = sqlite3.connect('racademic.db')
     try:
@@ -32,7 +30,6 @@ def get_db():
     finally:
         conn.close()
 
-# Create users table if it doesn't exist
 def init_db():
     conn = sqlite3.connect('racademic.db')
     c = conn.cursor()
@@ -133,6 +130,13 @@ class RatingCreate(BaseModel):
 class FavoriteToggle(BaseModel):
     resource_id: int
 
+class NameUpdate(BaseModel):
+    display_name: constr(min_length=1)
+
+class PasswordUpdate(BaseModel):
+    current_password: constr(min_length=1)
+    new_password: constr(min_length=6)
+
 # Helper functions
 def validate_hr_email(email: str) -> bool:
     return bool(re.match(r'^[a-zA-Z0-9._%+-]+@hr\.nl$', email))
@@ -158,7 +162,6 @@ def get_current_user(authorization: Optional[str] = Header(None), db: sqlite3.Co
         raise HTTPException(status_code=401, detail="Authorization header required")
     
     try:
-        # Extract token from "Bearer <token>"
         scheme, token = authorization.split()
         if scheme.lower() != "bearer":
             raise HTTPException(status_code=401, detail="Invalid authorization scheme")
@@ -168,7 +171,6 @@ def get_current_user(authorization: Optional[str] = Header(None), db: sqlite3.Co
         if user_id is None:
             raise HTTPException(status_code=401, detail="Invalid token")
         
-        # Verify user exists and is not blocked
         cursor = db.cursor()
         cursor.execute("SELECT id, email, display_name, is_blocked FROM users WHERE id = ?", (user_id,))
         user = cursor.fetchone()
@@ -176,7 +178,7 @@ def get_current_user(authorization: Optional[str] = Header(None), db: sqlite3.Co
         if not user:
             raise HTTPException(status_code=401, detail="User not found")
         
-        if user[3]:  # is_blocked
+        if user[3]:
             raise HTTPException(status_code=403, detail="Account is blocked")
         
         return {"id": user[0], "email": user[1], "display_name": user[2]}
@@ -195,23 +197,19 @@ def read_root():
 
 @app.post("/register")
 def register(user: UserCreate, db: sqlite3.Connection = Depends(get_db)):
-    # Validate HR email
     if not validate_hr_email(user.email):
         raise HTTPException(status_code=400, detail="Only @hr.nl email addresses are allowed")
     
-    # Check if email is blocked
     cursor = db.cursor()
     cursor.execute("SELECT is_blocked FROM users WHERE email = ?", (user.email,))
     result = cursor.fetchone()
     if result and result[0]:
         raise HTTPException(status_code=400, detail="This email address is blocked")
     
-    # Check if email already exists
     cursor.execute("SELECT id FROM users WHERE email = ?", (user.email,))
     if cursor.fetchone():
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Hash password and create user
     hashed_password = hash_password(user.password)
     cursor.execute(
         "INSERT INTO users (email, password, display_name) VALUES (?, ?, ?)",
@@ -238,7 +236,6 @@ def login(user: UserLogin, db: sqlite3.Connection = Depends(get_db)):
     if not verify_password(user.password, hashed_password):
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
-    # Create access token
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"user_id": user_id}, expires_delta=access_token_expires
@@ -398,4 +395,26 @@ def toggle_favorite(resource_id: int, current_user: dict = Depends(get_current_u
         message = "Toegevoegd aan favorieten"
     
     db.commit()
-    return {"message": message} 
+    return {"message": message}
+
+@app.put("/api/user/update-name")
+def update_name(data: NameUpdate, current_user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    cursor = db.cursor()
+    cursor.execute("UPDATE users SET display_name = ? WHERE id = ?", (data.display_name, current_user["id"]))
+    db.commit()
+    return {"message": "Naam succesvol bijgewerkt!"}
+
+@app.put("/api/user/update-password")
+def update_password(data: PasswordUpdate, current_user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    cursor = db.cursor()
+    cursor.execute("SELECT password FROM users WHERE id = ?", (current_user["id"],))
+    row = cursor.fetchone()
+    if not row:
+        raise HTTPException(status_code=404, detail="Gebruiker niet gevonden")
+    hashed_password = row[0]
+    if not verify_password(data.current_password, hashed_password):
+        raise HTTPException(status_code=400, detail="Huidig wachtwoord is onjuist")
+    new_hashed = hash_password(data.new_password)
+    cursor.execute("UPDATE users SET password = ? WHERE id = ?", (new_hashed, current_user["id"]))
+    db.commit()
+    return {"message": "Wachtwoord succesvol bijgewerkt!"} 
