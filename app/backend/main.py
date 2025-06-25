@@ -163,6 +163,11 @@ class BlockEmailRequest(BaseModel):
 class UnblockEmailRequest(BaseModel):
     email: EmailStr
 
+class CreateAdminRequest(BaseModel):
+    email: EmailStr
+    password: str
+    display_name: str
+
 class BlockedEmailResponse(BaseModel):
     id: int
     email: str
@@ -291,6 +296,7 @@ def login(user: UserLogin, db: sqlite3.Connection = Depends(get_db)):
         "user_id": user_id,
         "email": user.email,
         "display_name": display_name,
+        "is_admin": bool(is_admin),
         "access_token": access_token,
         "token_type": "bearer"
     }
@@ -520,4 +526,36 @@ def get_blocked_emails(
             blocked_by_name=row[5] or "Unknown"
         ))
     
-    return blocked_emails 
+    return blocked_emails
+
+@app.post("/admin/create-admin")
+def create_admin(
+    request: CreateAdminRequest, 
+    current_admin: dict = Depends(get_current_admin), 
+    db: sqlite3.Connection = Depends(get_db)
+):
+    # Validate HR email
+    if not validate_hr_email(request.email):
+        raise HTTPException(status_code=400, detail="Only @hr.nl email addresses are allowed for admin accounts")
+    
+    cursor = db.cursor()
+    
+    # Check if email is blocked
+    cursor.execute("SELECT id FROM blocked_emails WHERE email = ?", (request.email,))
+    if cursor.fetchone():
+        raise HTTPException(status_code=400, detail="This email address is blocked")
+    
+    # Check if email already exists
+    cursor.execute("SELECT id FROM users WHERE email = ?", (request.email,))
+    if cursor.fetchone():
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Hash password and create admin user
+    hashed_password = hash_password(request.password)
+    cursor.execute(
+        "INSERT INTO users (email, password, display_name, is_admin) VALUES (?, ?, ?, ?)",
+        (request.email, hashed_password, request.display_name, True)
+    )
+    db.commit()
+    
+    return {"message": f"Admin account created successfully for {request.email}"} 

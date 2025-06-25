@@ -53,6 +53,14 @@ function Home() {
             <h3>Bron Toevoegen</h3>
             <p>Voeg een nieuwe bron toe</p>
           </Link>
+          
+          {user.is_admin && (
+            <Link to="/admin" className="action-card admin-card">
+              <div className="card-icon">⚙️</div>
+              <h3>Admin Dashboard</h3>
+              <p>Beheer gebruikers en geblokkeerde e-mails</p>
+            </Link>
+          )}
         </div>
         
         <div className="features-section">
