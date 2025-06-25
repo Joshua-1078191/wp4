@@ -1,11 +1,11 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import ProtectedRoute from './components/ProtectedRoute';
+import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Home from './pages/Home';
 import Bronnen from './pages/Bronnen';
 import BronToevoegen from './pages/BronToevoegen';
-import ProtectedRoute from './components/ProtectedRoute';
 import './App.css';
 
 function App() {
@@ -15,7 +15,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/home" element={
+          <Route path="/" element={
             <ProtectedRoute>
               <Home />
             </ProtectedRoute>
@@ -25,12 +25,12 @@ function App() {
               <Bronnen />
             </ProtectedRoute>
           } />
-          <Route path="/bron-toevoegen" element={
+          <Route path="/bronnen-toevoegen" element={
             <ProtectedRoute>
               <BronToevoegen />
             </ProtectedRoute>
           } />
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </div>
     </Router>

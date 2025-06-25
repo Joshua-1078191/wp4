@@ -94,15 +94,13 @@
 }
 
 .action-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-  color: #333;
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-.card-icon {
+.action-card .card-icon {
   font-size: 3rem;
-  margin-bottom: 20px;
-  display: block;
+  margin-bottom: 1rem;
 }
 
 .action-card h3 {
