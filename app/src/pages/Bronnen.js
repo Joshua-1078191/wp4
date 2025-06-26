@@ -126,9 +126,6 @@ function Bronnen() {
             onChange={(e) => setPendingZoekTerm(e.target.value)}
             className="zoek-input"
           />
-        </div>
-
-        <div className="filter-controles">
           <select
             value={pendingTypeFilter}
             onChange={(e) => setPendingTypeFilter(e.target.value)}
@@ -140,7 +137,6 @@ function Bronnen() {
             <option value="artikel">Artikelen</option>
             <option value="cursus">Cursussen</option>
           </select>
-
           <select
             value={pendingCategorieFilter}
             onChange={(e) => setPendingCategorieFilter(e.target.value)}
