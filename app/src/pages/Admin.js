@@ -16,6 +16,7 @@ const Admin = () => {
   const [newAdminEmail, setNewAdminEmail] = useState('');
   const [newAdminPassword, setNewAdminPassword] = useState('');
   const [newAdminName, setNewAdminName] = useState('');
+  const [users, setUsers] = useState([]);
 
   const navigate = useNavigate();
 
@@ -43,6 +44,18 @@ const Admin = () => {
           setBlockedEmails(data);
         } else {
           throw new Error('Failed to fetch blocked emails');
+        }
+      } else if (activeTab === 'users') {
+        const response = await fetch('http://localhost:8000/admin/users', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUsers(data);
+        } else {
+          throw new Error('Failed to fetch users');
         }
       }
     } catch (err) {
@@ -192,6 +205,12 @@ const Admin = () => {
         >
           Admin Acties
         </button>
+        <button
+          className={`tab-btn ${activeTab === 'users' ? 'active' : ''}`}
+          onClick={() => setActiveTab('users')}
+        >
+          Gebruikers
+        </button>
       </div>
 
       <div className="admin-content">
@@ -282,6 +301,26 @@ const Admin = () => {
                   {loading ? 'Bezig...' : 'Admin Aanmaken'}
                 </button>
               </form>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'users' && (
+          <div className="users-section">
+            <h2>Gebruikersoverzicht</h2>
+            <div className="users-list">
+              {users.map(user => (
+                <div key={user.id} className={`user-card${user.is_admin ? ' admin' : ''}${user.is_blocked ? ' blocked' : ''}`}>
+                  <div className="user-info">
+                    <h3>{user.display_name}</h3>
+                    <p>{user.email}</p>
+                    <div className="user-badges">
+                      {user.is_admin && <span className="badge admin-badge">Admin</span>}
+                      {user.is_blocked && <span className="badge blocked-badge">Geblokkeerd</span>}
+                    </div>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         )}

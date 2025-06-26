@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr
-from typing import Optional
+from typing import Optional, List
 import sqlite3
 import bcrypt
 import re
@@ -175,6 +175,13 @@ class BlockedEmailResponse(BaseModel):
     blocked_at: str
     reason: Optional[str]
     blocked_by_name: str
+
+class UserListResponse(BaseModel):
+    id: int
+    email: str
+    display_name: str
+    is_admin: bool
+    is_blocked: bool
 
 # Helper functions
 def validate_hr_email(email: str) -> bool:
@@ -558,4 +565,20 @@ def create_admin(
     )
     db.commit()
     
-    return {"message": f"Admin account created successfully for {request.email}"} 
+    return {"message": f"Admin account created successfully for {request.email}"}
+
+@app.get("/admin/users", response_model=List[UserListResponse])
+def get_all_users(current_admin: dict = Depends(get_current_admin), db: sqlite3.Connection = Depends(get_db)):
+    cursor = db.cursor()
+    cursor.execute("SELECT id, email, display_name, is_admin, is_blocked FROM users ORDER BY is_admin DESC, is_blocked DESC, email ASC")
+    users = [
+        UserListResponse(
+            id=row[0],
+            email=row[1],
+            display_name=row[2],
+            is_admin=bool(row[3]),
+            is_blocked=bool(row[4])
+        )
+        for row in cursor.fetchall()
+    ]
+    return users 

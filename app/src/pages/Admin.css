@@ -235,4 +235,66 @@
   .action-card {
     padding: 20px;
   }
+}
+
+/* Gebruikersoverzicht styles */
+.users-section {
+  margin-top: 30px;
+}
+.users-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 20px;
+}
+.user-card {
+  background: white;
+  border-radius: 14px;
+  padding: 22px 28px;
+  box-shadow: 0 4px 18px rgba(102, 126, 234, 0.10);
+  border: 1.5px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  transition: box-shadow 0.2s, border 0.2s;
+  position: relative;
+}
+.user-card.admin {
+  border: 2px solid #667eea;
+}
+.user-card.blocked {
+  opacity: 0.6;
+  border: 2px solid #e74c3c;
+}
+.user-info {
+  flex: 1;
+}
+.user-info h3 {
+  margin: 0 0 6px 0;
+  font-size: 1.2rem;
+  color: #333;
+  font-weight: 600;
+}
+.user-info p {
+  margin: 0 0 10px 0;
+  color: #666;
+  font-size: 0.98rem;
+}
+.user-badges {
+  display: flex;
+  gap: 10px;
+}
+.badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-right: 6px;
+}
+.admin-badge {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+.blocked-badge {
+  background: #e74c3c;
+  color: white;
 } 
