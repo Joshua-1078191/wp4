@@ -9,10 +9,13 @@ function Bronnen() {
   const [zoekTerm, setZoekTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
   const [categorieFilter, setCategorieFilter] = useState('');
+  const [pendingZoekTerm, setPendingZoekTerm] = useState('');
+  const [pendingTypeFilter, setPendingTypeFilter] = useState('');
+  const [pendingCategorieFilter, setPendingCategorieFilter] = useState('');
 
   useEffect(() => {
     haalBronnenOp();
-  }, [zoekTerm, typeFilter, categorieFilter]);
+  }, []);
 
   const haalBronnenOp = async () => {
     try {
@@ -119,16 +122,16 @@ function Bronnen() {
           <input
             type="text"
             placeholder="Zoek in bronnen..."
-            value={zoekTerm}
-            onChange={(e) => setZoekTerm(e.target.value)}
+            value={pendingZoekTerm}
+            onChange={(e) => setPendingZoekTerm(e.target.value)}
             className="zoek-input"
           />
         </div>
 
         <div className="filter-controles">
           <select
-            value={typeFilter}
-            onChange={(e) => setTypeFilter(e.target.value)}
+            value={pendingTypeFilter}
+            onChange={(e) => setPendingTypeFilter(e.target.value)}
             className="filter-select"
           >
             <option value="">Alle Types</option>
@@ -139,8 +142,8 @@ function Bronnen() {
           </select>
 
           <select
-            value={categorieFilter}
-            onChange={(e) => setCategorieFilter(e.target.value)}
+            value={pendingCategorieFilter}
+            onChange={(e) => setPendingCategorieFilter(e.target.value)}
             className="filter-select"
           >
             <option value="">Alle Categorieën</option>
@@ -150,6 +153,18 @@ function Bronnen() {
             <option value="Bedrijfskunde">Bedrijfskunde</option>
             <option value="Wetenschap">Wetenschap</option>
           </select>
+          <button
+            className="zoek-btn"
+            onClick={() => {
+              setZoekTerm(pendingZoekTerm);
+              setTypeFilter(pendingTypeFilter);
+              setCategorieFilter(pendingCategorieFilter);
+              setLoading(true);
+              setTimeout(haalBronnenOp, 0);
+            }}
+          >
+            Zoek
+          </button>
         </div>
       </div>
 
