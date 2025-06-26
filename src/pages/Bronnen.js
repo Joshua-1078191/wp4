@@ -6,4 +6,4 @@ const haalBronnenOp = useCallback(async () => {
 
 useEffect(() => {
   haalBronnenOp();
-}, [haalBronnenOp]); 
+}, [zoekTerm, typeFilter, categorieFilter, haalBronnenOp]); 
