@@ -123,15 +123,13 @@
 }
 
 .action-card:hover {
-  transform: translateY(-10px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
-  color: #333;
+  transform: translateY(-5px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
-.card-icon {
+.action-card .card-icon {
   font-size: 3rem;
-  margin-bottom: 20px;
-  display: block;
+  margin-bottom: 1rem;
 }
 
 .action-card h3 {
@@ -186,6 +184,23 @@
 .features-list li:hover {
   background: rgba(255, 255, 255, 0.2);
   transform: translateX(5px);
+}
+
+.admin-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.admin-card:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.admin-card h3,
+.admin-card p {
+  color: white;
 }
 
 @media (max-width: 768px) {

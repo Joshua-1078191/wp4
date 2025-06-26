@@ -49,15 +49,23 @@ function Home() {
         <div className="action-cards">
           <Link to="/bronnen" className="action-card">
             <div className="card-icon">📚</div>
-            <h3>Bekijk Bronnen</h3>
-            <p>Ontdek studiematerialen gedeeld door andere studenten</p>
+            <h3>Bronnen Bekijken</h3>
+            <p>Bekijk alle beschikbare bronnen</p>
           </Link>
           
-          <Link to="/bron-toevoegen" className="action-card">
+          <Link to="/bronnen-toevoegen" className="action-card">
             <div className="card-icon">➕</div>
-            <h3>Deel Bron</h3>
-            <p>Help anderen door een bron te delen die jou heeft geholpen</p>
+            <h3>Bron Toevoegen</h3>
+            <p>Voeg een nieuwe bron toe</p>
           </Link>
+          
+          {user.is_admin && (
+            <Link to="/admin" className="action-card admin-card">
+              <div className="card-icon">⚙️</div>
+              <h3>Admin Dashboard</h3>
+              <p>Beheer gebruikers en geblokkeerde e-mails</p>
+            </Link>
+          )}
         </div>
         
         <div className="features-section">

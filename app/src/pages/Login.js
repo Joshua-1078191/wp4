@@ -26,6 +26,7 @@ function Login() {
         user_id: response.data.user_id,
         email: response.data.email,
         display_name: response.data.display_name,
+        is_admin: response.data.is_admin,
         access_token: response.data.access_token
       };
       localStorage.setItem('user', JSON.stringify(userData));

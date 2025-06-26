@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Depends, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr, constr
-from typing import Optional
+from typing import Optional, List
 import sqlite3
 import bcrypt
 import re
@@ -44,6 +44,18 @@ def init_db():
         )
     ''')
 
+    # Create blocked_emails table for storing blocked email addresses
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS blocked_emails (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
+            blocked_by INTEGER NOT NULL,
+            blocked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            reason TEXT,
+            FOREIGN KEY (blocked_by) REFERENCES users (id)
+        )
+    ''')
+
     c.execute('''
         CREATE TABLE IF NOT EXISTS resources (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -83,6 +95,17 @@ def init_db():
             UNIQUE(resource_id, user_id)
         )
     ''')
+    
+    # Create first admin user if no users exist
+    c.execute("SELECT COUNT(*) FROM users")
+    if c.fetchone()[0] == 0:
+        # Create default admin user
+        admin_email = "admin@hr.nl"
+        admin_password = hash_password("admin123")  # Change this in production
+        c.execute(
+            "INSERT INTO users (email, password, display_name, is_admin) VALUES (?, ?, ?, ?)",
+            (admin_email, admin_password, "Administrator", True)
+        )
     
     conn.commit()
     conn.close()
@@ -136,6 +159,32 @@ class NameUpdate(BaseModel):
 class PasswordUpdate(BaseModel):
     current_password: constr(min_length=1)
     new_password: constr(min_length=6)
+class BlockEmailRequest(BaseModel):
+    email: EmailStr
+    reason: Optional[str] = None
+
+class UnblockEmailRequest(BaseModel):
+    email: EmailStr
+
+class CreateAdminRequest(BaseModel):
+    email: EmailStr
+    password: str
+    display_name: str
+
+class BlockedEmailResponse(BaseModel):
+    id: int
+    email: str
+    blocked_by: int
+    blocked_at: str
+    reason: Optional[str]
+    blocked_by_name: str
+
+class UserListResponse(BaseModel):
+    id: int
+    email: str
+    display_name: str
+    is_admin: bool
+    is_blocked: bool
 
 # Helper functions
 def validate_hr_email(email: str) -> bool:
@@ -172,7 +221,7 @@ def get_current_user(authorization: Optional[str] = Header(None), db: sqlite3.Co
             raise HTTPException(status_code=401, detail="Invalid token")
         
         cursor = db.cursor()
-        cursor.execute("SELECT id, email, display_name, is_blocked FROM users WHERE id = ?", (user_id,))
+        cursor.execute("SELECT id, email, display_name, is_blocked, is_admin FROM users WHERE id = ?", (user_id,))
         user = cursor.fetchone()
         
         if not user:
@@ -181,7 +230,7 @@ def get_current_user(authorization: Optional[str] = Header(None), db: sqlite3.Co
         if user[3]:
             raise HTTPException(status_code=403, detail="Account is blocked")
         
-        return {"id": user[0], "email": user[1], "display_name": user[2]}
+        return {"id": user[0], "email": user[1], "display_name": user[2], "is_admin": user[4]}
     
     except jwt.ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token has expired")
@@ -189,6 +238,11 @@ def get_current_user(authorization: Optional[str] = Header(None), db: sqlite3.Co
         raise HTTPException(status_code=401, detail="Invalid token")
     except ValueError:
         raise HTTPException(status_code=401, detail="Invalid authorization header")
+
+def get_current_admin(current_user: dict = Depends(get_current_user)):
+    if not current_user.get("is_admin"):
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return current_user
 
 # Routes
 @app.get("/")
@@ -200,12 +254,13 @@ def register(user: UserCreate, db: sqlite3.Connection = Depends(get_db)):
     if not validate_hr_email(user.email):
         raise HTTPException(status_code=400, detail="Only @hr.nl email addresses are allowed")
     
+    # Check if email is blocked in blocked_emails table
     cursor = db.cursor()
-    cursor.execute("SELECT is_blocked FROM users WHERE email = ?", (user.email,))
-    result = cursor.fetchone()
-    if result and result[0]:
+    cursor.execute("SELECT id FROM blocked_emails WHERE email = ?", (user.email,))
+    if cursor.fetchone():
         raise HTTPException(status_code=400, detail="This email address is blocked")
     
+    # Check if email already exists in users table
     cursor.execute("SELECT id FROM users WHERE email = ?", (user.email,))
     if cursor.fetchone():
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -222,13 +277,13 @@ def register(user: UserCreate, db: sqlite3.Connection = Depends(get_db)):
 @app.post("/login")
 def login(user: UserLogin, db: sqlite3.Connection = Depends(get_db)):
     cursor = db.cursor()
-    cursor.execute("SELECT id, password, is_blocked, display_name FROM users WHERE email = ?", (user.email,))
+    cursor.execute("SELECT id, password, is_blocked, display_name, is_admin FROM users WHERE email = ?", (user.email,))
     result = cursor.fetchone()
     
     if not result:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
-    user_id, hashed_password, is_blocked, display_name = result
+    user_id, hashed_password, is_blocked, display_name, is_admin = result
     
     if is_blocked:
         raise HTTPException(status_code=403, detail="This account is blocked")
@@ -246,6 +301,7 @@ def login(user: UserLogin, db: sqlite3.Connection = Depends(get_db)):
         "user_id": user_id,
         "email": user.email,
         "display_name": display_name,
+        "is_admin": bool(is_admin),
         "access_token": access_token,
         "token_type": "bearer"
     }
@@ -418,3 +474,132 @@ def update_password(data: PasswordUpdate, current_user: dict = Depends(get_curre
     cursor.execute("UPDATE users SET password = ? WHERE id = ?", (new_hashed, current_user["id"]))
     db.commit()
     return {"message": "Wachtwoord succesvol bijgewerkt!"} 
+    return {"message": message} 
+
+# Admin endpoints
+@app.post("/admin/block-email")
+def block_email(
+    request: BlockEmailRequest, 
+    current_admin: dict = Depends(get_current_admin), 
+    db: sqlite3.Connection = Depends(get_db)
+):
+    # Validate HR email
+    if not validate_hr_email(request.email):
+        raise HTTPException(status_code=400, detail="Only @hr.nl email addresses can be blocked")
+    
+    cursor = db.cursor()
+    
+    # Check if email is already blocked
+    cursor.execute("SELECT id FROM blocked_emails WHERE email = ?", (request.email,))
+    if cursor.fetchone():
+        raise HTTPException(status_code=400, detail="Email is already blocked")
+    
+    # Check if email exists as a user
+    cursor.execute("SELECT id FROM users WHERE email = ?", (request.email,))
+    user = cursor.fetchone()
+    if user:
+        # Block the existing user
+        cursor.execute("UPDATE users SET is_blocked = 1 WHERE email = ?", (request.email,))
+    
+    # Add to blocked_emails table
+    cursor.execute(
+        "INSERT INTO blocked_emails (email, blocked_by, reason) VALUES (?, ?, ?)",
+        (request.email, current_admin["id"], request.reason)
+    )
+    
+    db.commit()
+    return {"message": f"Email {request.email} has been blocked successfully"}
+
+@app.post("/admin/unblock-email")
+def unblock_email(
+    request: UnblockEmailRequest, 
+    current_admin: dict = Depends(get_current_admin), 
+    db: sqlite3.Connection = Depends(get_db)
+):
+    cursor = db.cursor()
+    
+    # Remove from blocked_emails table
+    cursor.execute("DELETE FROM blocked_emails WHERE email = ?", (request.email,))
+    if cursor.rowcount == 0:
+        raise HTTPException(status_code=404, detail="Email is not blocked")
+    
+    # Unblock user if they exist
+    cursor.execute("UPDATE users SET is_blocked = 0 WHERE email = ?", (request.email,))
+    
+    db.commit()
+    return {"message": f"Email {request.email} has been unblocked successfully"}
+
+@app.get("/admin/blocked-emails", response_model=list[BlockedEmailResponse])
+def get_blocked_emails(
+    current_admin: dict = Depends(get_current_admin), 
+    db: sqlite3.Connection = Depends(get_db)
+):
+    cursor = db.cursor()
+    cursor.execute("""
+        SELECT be.id, be.email, be.blocked_by, be.blocked_at, be.reason, u.display_name
+        FROM blocked_emails be
+        LEFT JOIN users u ON be.blocked_by = u.id
+        ORDER BY be.blocked_at DESC
+    """)
+    
+    results = cursor.fetchall()
+    blocked_emails = []
+    for row in results:
+        blocked_emails.append(BlockedEmailResponse(
+            id=row[0],
+            email=row[1],
+            blocked_by=row[2],
+            blocked_at=row[3],
+            reason=row[4],
+            blocked_by_name=row[5] or "Unknown"
+        ))
+    
+    return blocked_emails
+
+@app.post("/admin/create-admin")
+def create_admin(
+    request: CreateAdminRequest, 
+    current_admin: dict = Depends(get_current_admin), 
+    db: sqlite3.Connection = Depends(get_db)
+):
+    # Validate HR email
+    if not validate_hr_email(request.email):
+        raise HTTPException(status_code=400, detail="Only @hr.nl email addresses are allowed for admin accounts")
+    
+    cursor = db.cursor()
+    
+    # Check if email is blocked
+    cursor.execute("SELECT id FROM blocked_emails WHERE email = ?", (request.email,))
+    if cursor.fetchone():
+        raise HTTPException(status_code=400, detail="This email address is blocked")
+    
+    # Check if email already exists
+    cursor.execute("SELECT id FROM users WHERE email = ?", (request.email,))
+    if cursor.fetchone():
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Hash password and create admin user
+    hashed_password = hash_password(request.password)
+    cursor.execute(
+        "INSERT INTO users (email, password, display_name, is_admin) VALUES (?, ?, ?, ?)",
+        (request.email, hashed_password, request.display_name, True)
+    )
+    db.commit()
+    
+    return {"message": f"Admin account created successfully for {request.email}"}
+
+@app.get("/admin/users", response_model=List[UserListResponse])
+def get_all_users(current_admin: dict = Depends(get_current_admin), db: sqlite3.Connection = Depends(get_db)):
+    cursor = db.cursor()
+    cursor.execute("SELECT id, email, display_name, is_admin, is_blocked FROM users ORDER BY is_admin DESC, is_blocked DESC, email ASC")
+    users = [
+        UserListResponse(
+            id=row[0],
+            email=row[1],
+            display_name=row[2],
+            is_admin=bool(row[3]),
+            is_blocked=bool(row[4])
+        )
+        for row in cursor.fetchall()
+    ]
+    return users 
