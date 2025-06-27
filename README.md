@@ -24,7 +24,7 @@ Daarom combineren we gebruiksgemak met veiligheid en relevantie. Hieronder lees 
 --------------------------------------------------------------------------------------------------------------------------------
 
 **Snel Starten met Docker**
-De eenvoudigste manier om de applicatie te draaien is met Docker. Zorg ervoor dat je Docker en Docker Compose hebt geïnstalleerd.
+De eenvoudigste manier om de applicatie te draaien is met Docker (https://www.docker.com/). Zorg ervoor dat je Docker en Docker Compose hebt geïnstalleerd.
 
 Applicatie starten met Docker
 Clone de repository:
