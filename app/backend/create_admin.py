@@ -1,7 +1,8 @@
+import os
 import sqlite3
 import bcrypt
 
-DB_PATH = 'app/backend/racademic.db'
+DB_PATH = os.path.join(os.path.dirname(__file__), 'racademic.db')
 
 def hash_password(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')

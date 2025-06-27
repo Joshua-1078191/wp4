@@ -153,48 +153,50 @@ function Bronnen() {
 
       <div className="filters-sectie">
         <div className="zoek-box">
-          <input
-            type="text"
-            placeholder="Zoek in bronnen..."
-            value={pendingZoekTerm}
-            onChange={(e) => setPendingZoekTerm(e.target.value)}
-            className="zoek-input"
-          />
-          <select
-            value={pendingTypeFilter}
-            onChange={(e) => setPendingTypeFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="">Alle Types</option>
-            <option value="boek">Boeken</option>
-            <option value="video">Video's</option>
-            <option value="artikel">Artikelen</option>
-            <option value="cursus">Cursussen</option>
-          </select>
-          <select
-            value={pendingCategorieFilter}
-            onChange={(e) => setPendingCategorieFilter(e.target.value)}
-            className="filter-select"
-          >
-            <option value="">Alle Categorieën</option>
-            <option value="Programmeren">Programmeren</option>
-            <option value="Wiskunde">Wiskunde</option>
-            <option value="Design">Design</option>
-            <option value="Bedrijfskunde">Bedrijfskunde</option>
-            <option value="Wetenschap">Wetenschap</option>
-          </select>
-          <button
-            className="zoek-btn"
-            onClick={() => {
-              setZoekTerm(pendingZoekTerm);
-              setTypeFilter(pendingTypeFilter);
-              setCategorieFilter(pendingCategorieFilter);
-              setLoading(true);
-              setTimeout(haalBronnenOp, 0);
-            }}
-          >
-            Zoek
-          </button>
+          <div className="filter-controles">
+            <input
+              type="text"
+              placeholder="Zoek in bronnen..."
+              value={pendingZoekTerm}
+              onChange={(e) => setPendingZoekTerm(e.target.value)}
+              className="zoek-input"
+            />
+            <select
+              value={pendingTypeFilter}
+              onChange={(e) => setPendingTypeFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="">Alle Types</option>
+              <option value="boek">Boeken</option>
+              <option value="video">Video's</option>
+              <option value="artikel">Artikelen</option>
+              <option value="cursus">Cursussen</option>
+            </select>
+            <select
+              value={pendingCategorieFilter}
+              onChange={(e) => setPendingCategorieFilter(e.target.value)}
+              className="filter-select"
+            >
+              <option value="">Alle Categorieën</option>
+              <option value="Programmeren">Programmeren</option>
+              <option value="Wiskunde">Wiskunde</option>
+              <option value="Design">Design</option>
+              <option value="Bedrijfskunde">Bedrijfskunde</option>
+              <option value="Wetenschap">Wetenschap</option>
+            </select>
+            <button
+              className="zoek-btn"
+              onClick={() => {
+                setZoekTerm(pendingZoekTerm);
+                setTypeFilter(pendingTypeFilter);
+                setCategorieFilter(pendingCategorieFilter);
+                setLoading(true);
+                setTimeout(haalBronnenOp, 0);
+              }}
+            >
+              Zoek
+            </button>
+          </div>
         </div>
       </div>
 

@@ -51,7 +51,9 @@
 }
 
 .zoek-input {
-  width: 100%;
+  flex: 1;
+  min-width: 180px;
+  max-width: 350px;
   padding: 12px 20px;
   border: 2px solid #e0e0e0;
   border-radius: 25px;
@@ -69,6 +71,7 @@
   display: flex;
   gap: 15px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
 .filter-select {
@@ -79,11 +82,31 @@
   font-size: 14px;
   min-width: 150px;
   transition: border-color 0.3s ease;
+  height: 44px;
 }
 
 .filter-select:focus {
   outline: none;
   border-color: #667eea;
+}
+
+.zoek-btn {
+  padding: 10px 24px;
+  border-radius: 25px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  font-weight: 600;
+  font-size: 16px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+  height: 44px;
+  cursor: pointer;
+}
+
+.zoek-btn:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.25);
 }
 
 .bronnen-grid {
@@ -300,6 +323,59 @@
   font-size: 18px;
 }
 
+.edit-bron-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-weight: 600;
+  font-size: 15px;
+  margin-right: 8px;
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.2s;
+  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.10);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.edit-bron-btn:hover {
+  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.18);
+}
+
+.delete-bron-btn {
+  background: #fff0f0;
+  color: #e74c3c;
+  border: 2px solid #e74c3c;
+  border-radius: 20px;
+  padding: 8px 18px;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s, transform 0.2s;
+  box-shadow: 0 2px 8px rgba(231, 76, 60, 0.08);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.delete-bron-btn:hover {
+  background: #e74c3c;
+  color: white;
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 4px 15px rgba(231, 76, 60, 0.15);
+}
+
+.bron-owner-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  justify-content: center;
+}
+
 @media (max-width: 768px) {
   .bronnen-container {
     padding: 15px;
@@ -317,9 +393,12 @@
   
   .filter-controles {
     flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
   }
   
-  .filter-select {
+  .zoek-input, .filter-select, .zoek-btn {
+    max-width: 100%;
     width: 100%;
   }
   
