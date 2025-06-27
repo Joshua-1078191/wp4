@@ -54,16 +54,6 @@ function BronToevoegen() {
     }
   };
 
-  const getTypeIcoon = (type) => {
-    switch (type) {
-      case 'boek': return '📚';
-      case 'video': return '🎥';
-      case 'artikel': return '📄';
-      case 'cursus': return '🎓';
-      default: return '📖';
-    }
-  };
-
   return (
     <div className="bron-toevoegen-container">
       <div className="bron-toevoegen-box">

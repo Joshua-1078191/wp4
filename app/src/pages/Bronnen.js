@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { getAuthHeaders, handleApiError } from '../utils/auth';
 import './Bronnen.css';
@@ -13,11 +13,7 @@ function Bronnen() {
   const [pendingTypeFilter, setPendingTypeFilter] = useState('');
   const [pendingCategorieFilter, setPendingCategorieFilter] = useState('');
 
-  useEffect(() => {
-    haalBronnenOp();
-  }, []);
-
-  const haalBronnenOp = async () => {
+  const haalBronnenOp = useCallback(async () => {
     try {
       setLoading(true);
       const params = new URLSearchParams();
@@ -45,7 +41,11 @@ function Bronnen() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [zoekTerm, typeFilter, categorieFilter]);
+
+  useEffect(() => {
+    haalBronnenOp();
+  }, [haalBronnenOp]);
 
   const handleBeoordeel = async (bronId, beoordeling) => {
     try {

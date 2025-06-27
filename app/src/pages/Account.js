@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { getCurrentUser, getAuthHeaders, handleApiError } from '../utils/auth';
+import { getCurrentUser, getAuthHeaders } from '../utils/auth';
 import './Account.css';
 
 const API_BASE = "http://localhost:8000";
