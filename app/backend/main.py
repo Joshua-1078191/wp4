@@ -24,14 +24,14 @@ app.add_middleware(
 )
 
 def get_db():
-    conn = sqlite3.connect('app/backend/racademic.db')
+    conn = sqlite3.connect('racademic.db')
     try:
         yield conn
     finally:
         conn.close()
 
 def init_db():
-    conn = sqlite3.connect('app/backend/racademic.db')
+    conn = sqlite3.connect('racademic.db')
     c = conn.cursor()
     c.execute('''
         CREATE TABLE IF NOT EXISTS users (
