@@ -190,8 +190,6 @@ function Bronnen() {
                 setZoekTerm(pendingZoekTerm);
                 setTypeFilter(pendingTypeFilter);
                 setCategorieFilter(pendingCategorieFilter);
-                setLoading(true);
-                setTimeout(haalBronnenOp, 0);
               }}
             >
               Zoek
