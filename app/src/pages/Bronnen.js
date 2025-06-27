@@ -88,6 +88,40 @@ function Bronnen() {
     }
   };
 
+  const handleDelete = async (bronId) => {
+    if (!window.confirm('Weet je zeker dat je deze bron wilt verwijderen?')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`http://localhost:8000/bronnen/${bronId}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders(),
+      });
+      
+      if (response.status === 401) {
+        handleApiError({ status: 401 });
+        return;
+      }
+      
+      if (response.ok) {
+        haalBronnenOp();
+      } else {
+        const data = await response.json();
+        alert(data.detail || 'Fout bij verwijderen van bron');
+      }
+    } catch (error) {
+      console.error('Fout bij verwijderen van bron:', error);
+      alert('Fout bij verwijderen van bron');
+    }
+  };
+
+  const handleEdit = (bron) => {
+    // Navigate to edit page with bron data
+    const bronData = encodeURIComponent(JSON.stringify(bron));
+    window.location.href = `/bron-toevoegen?edit=${bronData}`;
+  };
+
   const getTypeIcoon = (type) => {
     switch (type) {
       case 'boek': return '📚';
@@ -242,6 +276,27 @@ function Bronnen() {
                     Bekijk Bron
                   </a>
                 )}
+
+                {/* Edit and Delete buttons */}
+                <div className="bron-owner-actions">
+                  {bron.can_edit && (
+                    <button
+                      onClick={() => handleEdit(bron)}
+                      className="edit-bron-btn"
+                    >
+                      ✏️ Bewerken
+                    </button>
+                  )}
+                  
+                  {bron.can_delete && (
+                    <button
+                      onClick={() => handleDelete(bron.id)}
+                      className="delete-bron-btn"
+                    >
+                      🗑️ Verwijderen
+                    </button>
+                  )}
+                </div>
               </div>
             </div>
           ))

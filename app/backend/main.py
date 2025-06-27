@@ -123,6 +123,8 @@ class ResourceResponse(BaseModel):
     ratings_count: int
     is_favorited: bool
     favorites_count: int
+    can_edit: bool
+    can_delete: bool
 
 class RatingCreate(BaseModel):
     rating: int  
@@ -313,7 +315,9 @@ def create_resource(resource: ResourceCreate, current_user: dict = Depends(get_c
         average_rating=None,
         ratings_count=0,
         is_favorited=False,
-        favorites_count=0
+        favorites_count=0,
+        can_edit=True,
+        can_delete=True
     )
 
 @app.get("/bronnen", response_model=list[ResourceResponse])
@@ -326,6 +330,7 @@ def get_resources(
 ):
     cursor = db.cursor()
     user_id = current_user["id"]
+    is_admin = current_user.get("is_admin", False)
     
     query = """
         SELECT r.id, r.title, r.description, r.url, r.type, r.category, r.tags, 
@@ -367,6 +372,10 @@ def get_resources(
     
     resources = []
     for row in results:
+        resource_user_id = row[7]
+        can_edit = is_admin or resource_user_id == user_id
+        can_delete = is_admin or resource_user_id == user_id
+        
         resources.append(ResourceResponse(
             id=row[0],
             title=row[1],
@@ -375,13 +384,15 @@ def get_resources(
             type=row[4],
             category=row[5],
             tags=row[6],
-            user_id=row[7],
+            user_id=resource_user_id,
             user_display_name=row[9],
             created_at=row[8],
             average_rating=row[10],
             ratings_count=row[11],
             is_favorited=bool(row[13]),
-            favorites_count=row[12]
+            favorites_count=row[12],
+            can_edit=can_edit,
+            can_delete=can_delete
         ))
     
     return resources
@@ -451,6 +462,61 @@ def update_password(data: PasswordUpdate, current_user: dict = Depends(get_curre
     cursor.execute("UPDATE users SET password = ? WHERE id = ?", (new_hashed, current_user["id"]))
     db.commit()
     return {"message": "Wachtwoord succesvol bijgewerkt!"}
+
+@app.delete("/bronnen/{resource_id}")
+def delete_resource(resource_id: int, current_user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    cursor = db.cursor()
+    
+    # Check if resource exists
+    cursor.execute("SELECT user_id FROM resources WHERE id = ?", (resource_id,))
+    result = cursor.fetchone()
+    if not result:
+        raise HTTPException(status_code=404, detail="Bron niet gevonden")
+    
+    resource_user_id = result[0]
+    current_user_id = current_user["id"]
+    is_admin = current_user.get("is_admin", False)
+    
+    # Only allow deletion if user is admin or owns the resource
+    if not is_admin and resource_user_id != current_user_id:
+        raise HTTPException(status_code=403, detail="Je kunt alleen je eigen bronnen verwijderen")
+    
+    # Delete related data first (ratings, favorites)
+    cursor.execute("DELETE FROM ratings WHERE resource_id = ?", (resource_id,))
+    cursor.execute("DELETE FROM favorites WHERE resource_id = ?", (resource_id,))
+    
+    # Delete the resource
+    cursor.execute("DELETE FROM resources WHERE id = ?", (resource_id,))
+    db.commit()
+    
+    return {"message": "Bron succesvol verwijderd"}
+
+@app.put("/bronnen/{resource_id}")
+def update_resource(resource_id: int, resource: ResourceCreate, current_user: dict = Depends(get_current_user), db: sqlite3.Connection = Depends(get_db)):
+    cursor = db.cursor()
+    
+    # Check if resource exists
+    cursor.execute("SELECT user_id FROM resources WHERE id = ?", (resource_id,))
+    result = cursor.fetchone()
+    if not result:
+        raise HTTPException(status_code=404, detail="Bron niet gevonden")
+    
+    resource_user_id = result[0]
+    current_user_id = current_user["id"]
+    is_admin = current_user.get("is_admin", False)
+    
+    # Only allow editing if user owns the resource or is admin
+    if not is_admin and resource_user_id != current_user_id:
+        raise HTTPException(status_code=403, detail="Je kunt alleen je eigen bronnen bewerken")
+    
+    # Update the resource
+    cursor.execute(
+        "UPDATE resources SET title = ?, description = ?, url = ?, type = ?, category = ?, tags = ? WHERE id = ?",
+        (resource.title, resource.description, resource.url, resource.type, resource.category, resource.tags, resource_id)
+    )
+    db.commit()
+    
+    return {"message": "Bron succesvol bijgewerkt"}
 
 # Admin endpoints
 @app.post("/admin/block-email")

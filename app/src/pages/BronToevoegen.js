@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { getAuthHeaders, handleApiError } from '../utils/auth';
 import './BronToevoegen.css';
 
 function BronToevoegen() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editId, setEditId] = useState(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -15,6 +18,30 @@ function BronToevoegen() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  // Check if we're editing an existing bron
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.search);
+    const editData = urlParams.get('edit');
+    
+    if (editData) {
+      try {
+        const bron = JSON.parse(decodeURIComponent(editData));
+        setFormData({
+          title: bron.title || '',
+          description: bron.description || '',
+          url: bron.url || '',
+          type: bron.type || 'boek',
+          category: bron.category || '',
+          tags: bron.tags || ''
+        });
+        setEditId(bron.id);
+        setIsEditing(true);
+      } catch (error) {
+        console.error('Error parsing edit data:', error);
+      }
+    }
+  }, [location.search]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,8 +57,14 @@ function BronToevoegen() {
     setError('');
 
     try {
-      const response = await fetch('http://localhost:8000/bronnen', {
-        method: 'POST',
+      const url = isEditing 
+        ? `http://localhost:8000/bronnen/${editId}`
+        : 'http://localhost:8000/bronnen';
+      
+      const method = isEditing ? 'PUT' : 'POST';
+      
+      const response = await fetch(url, {
+        method: method,
         headers: getAuthHeaders(),
         body: JSON.stringify(formData),
       });
@@ -45,7 +78,7 @@ function BronToevoegen() {
         navigate('/bronnen');
       } else {
         const errorData = await response.json();
-        setError(errorData.detail || 'Fout bij aanmaken van bron');
+        setError(errorData.detail || `Fout bij ${isEditing ? 'bewerken' : 'aanmaken'} van bron`);
       }
     } catch (error) {
       setError('Netwerkfout. Probeer het opnieuw.');
@@ -58,8 +91,8 @@ function BronToevoegen() {
     <div className="bron-toevoegen-container">
       <div className="bron-toevoegen-box">
         <header className="bron-toevoegen-header">
-          <h1>Deel een Studiebron</h1>
-          <p>Help je medestudenten door een bron te delen die jou heeft geholpen!</p>
+          <h1>{isEditing ? 'Bewerk Studiebron' : 'Deel een Studiebron'}</h1>
+          <p>{isEditing ? 'Bewerk de details van je bron.' : 'Help je medestudenten door een bron te delen die jou heeft geholpen!'}</p>
         </header>
 
         <form onSubmit={handleSubmit} className="bron-toevoegen-form">
@@ -176,7 +209,7 @@ function BronToevoegen() {
               className="submit-btn"
               disabled={loading}
             >
-              {loading ? 'Bron Delen...' : 'Bron Delen'}
+              {loading ? (isEditing ? 'Bewerken...' : 'Bron Delen...') : (isEditing ? 'Bron Bewerken' : 'Bron Delen')}
             </button>
           </div>
         </form>
