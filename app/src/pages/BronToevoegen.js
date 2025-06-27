@@ -140,11 +140,8 @@ function BronToevoegen() {
               value={formData.description}
               onChange={handleChange}
               placeholder="Vermeld bij:
-
 📘 Boek: de titel, ISBN en een korte samenvatting
-
 🎥 Video: de speelduur en een korte inhoud
-
 📰 Artikel/cursus: de hoofdpunten of wat je eruit hebt gehaald"
               rows="4"
               className="form-textarea"

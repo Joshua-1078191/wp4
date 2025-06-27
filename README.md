@@ -1,116 +1,75 @@
-# RAcademic App
+📚 **Welkom bij onze applicatie – speciaal voor studenten van Hogeschool Rotterdam**
+Onze applicatie is ontworpen om kennisdeling, samenwerking en efficiënt studeren te bevorderen.
+Daarom combineren we gebruiksgemak met veiligheid en relevantie. Hieronder lees je hoe het werkt en wat je kunt verwachten.
 
-A platform for students to share and discover study resources.
+🔐 **Login & Registratie:**
+-Alleen studenten met een @hr.nl e-mailadres kunnen zich registreren.
+-Inloggen is vereist om toegang te krijgen tot gedeelde content – zo blijft alle informatie binnen de studentengemeenschap.
+-Admins kunnen misbruik aanpakken door specifieke e-mailadressen te blokkeren.
+-Geblokkeerde adressen kunnen niet opnieuw worden gebruikt bij registratie.
+-Admins kunnen ook andere admins aanstellen – uiteraard alleen binnen het @hr.nl domein – zodat beheer gedeeld kan worden.
 
-## Quick Start with Docker
+👤 **Account & Profiel:**
+-Je displaynaam is standaard je studentnummer, maar je kunt deze aanpassen voor meer privacy of personalisatie.
+-Je kunt je wachtwoord zelf wijzigen – voor betere controle over je accountveiligheid.
 
-The easiest way to run the application is using Docker. Make sure you have [Docker](https://www.docker.com/get-started) and [Docker Compose](https://docs.docker.com/compose/install/) installed.
+🔗 **Bronnen delen:**
+-De kern van de app is het delen en ontdekken van waardevolle studiematerialen:
+-Upload gemakkelijk nuttige bronnen: boeken, artikelen, video’s of online cursussen.
+-Bekijk, beoordeel en bewaar bronnen van anderen.
+-Filter en zoek gericht op vak, moeilijkheid, type of tag – zo vind je altijd snel wat je nodig hebt.
+-Voeg favoriete bronnen toe aan je lijst om ze later gemakkelijk terug te vinden.
+-Elke bron wordt op een passende manier gepresenteerd
 
-### Running with Docker
+--------------------------------------------------------------------------------------------------------------------------------
 
-1. Clone the repository:
+**Snel Starten met Docker**
+De eenvoudigste manier om de applicatie te draaien is met Docker. Zorg ervoor dat je Docker en Docker Compose hebt geïnstalleerd.
+
+Applicatie starten met Docker
+Clone de repository:
+
 ```bash
 git clone <repository-url>
 ```
+Start de applicatie:
 
-2. Start the application:
 ```bash
 docker-compose up --build
 ```
+Open de applicatie in je browser:
 
-3. Access the application:
 - Frontend: http://localhost:3000
 - Backend API: http://localhost:8000
 
-That's it! The application should now be running with both frontend and backend services.
+Dat is alles! De applicatie zou nu moeten draaien met zowel de frontend- als backendservices.
 
-## Manual Setup (Alternative)
 
-If you prefer to run the services without Docker, follow these instructions:
 
-### Prerequisites
-- [Node.js](https://nodejs.org/) (version 14 or higher)
-- [Python](https://www.python.org/) (version 3.8 or higher)
-- [Git](https://git-scm.com/) (for cloning the repository)
 
-### Backend Setup
-```bash
-cd app/backend
+**Bronnen die wij gebruikt hebben en AI:**
 
-# Create a virtual environment (optional but recommended)
-python -m venv venv
+- Joshua
 
-# Activate the virtual environment
-# On Windows:
-venv\Scripts\activate
-# On macOS/Linux:
-source venv/bin/activate
+AI:
+Error Fixing
+Helpen met Css design
+Helpen met JS en React
+Bronnen:
+-https://www.youtube.com/watch?v=mbsmsi7l3r4 - JWT Authentication tutorial
+-https://www.youtube.com/watch?v=PKwu15ldZ7k - React Authentication Crash Course met Firebase And Routing
+-https://www.youtube.com/@GreatStackDev - Veel videos van hem gekeken, heel leerzaam
 
-# Install Python dependencies
-pip install -r requirements.txt
+- Slava
 
-# Start the backend server
-python -m uvicorn main:app --reload
-```
+Ai:
+-Css design - Ben geen designer, ik begrijp wel de css code en kan hem heel makkelijk aanpassen via het F12 op browser.
+maar zelf iets bedenken vind ik moeilijk.
+-Terminal problemen, als iets binnen het terminal fout gaat, vroeg ik heel vaak naar waar ik precies moet kijken
+-Natuurlijk ook beetje van alles waar ik problemen mee had.
 
-### Frontend Setup
-```bash
-# In a new terminal
-cd app
-
-# Install Node.js dependencies
-npm install
-
-# Start the frontend development server
-npm start
-```
-
-## Testing the Application
-
-1. Open http://localhost:3000 in your browser
-2. You should see the login page
-3. Click "Register" to create a new account
-   - Use an @hr.nl email address
-   - Create a password
-   - Enter a display name
-4. After registration, you'll be redirected to the login page
-5. Log in with your credentials
-
-## Troubleshooting
-
-### Docker Issues
-- Make sure Docker and Docker Compose are installed correctly
-- Check if ports 3000 and 8000 are available
-- Try rebuilding the containers: `docker-compose up --build`
-- Check container logs: `docker-compose logs`
-
-### Manual Setup Issues
-- Make sure Python and pip are installed correctly
-- Check if the virtual environment is activated
-- Verify all requirements are installed
-- Ensure ports 3000 and 8000 are not in use
-
-## Project Structure
-```
-.
-├── app/                # Frontend application
-│   ├── public/        # Static files
-│   ├── src/          # React source code
-│   │   ├── pages/    # React components
-│   │   └── ...
-│   ├── backend/      # Python backend
-│   │   ├── main.py   # FastAPI application
-│   │   └── ...
-│   ├── Dockerfile    # Frontend Docker configuration
-│   └── package.json  # Node.js dependencies
-├── docker-compose.yml # Docker services configuration
-└── README.md         # This file
-```
-
-## Support
-
-If you encounter any issues:
-1. Check the troubleshooting section
-2. Verify Docker is running correctly
-3. Check the container logs
-4. Make sure all required ports are available 
+Bronnen:
+-https://youtu.be/GeulXZP_kZ8?si=-D-kobiLhUDUDqDE - Russishe React guide voor beginner met alle belangrijke functies
+-https://www.youtube.com/watch?v=R_39q-vdOaE - Russishe praktijk video om eerste react website te bouwen en functies te begrijpen
+-PDF Files van OPS Toets - Daar staat alles over Docker en had daar door geen andere uitleg nodig.
+-Voor de rest - AI als iets fout gaat om fout te begrijpen en debugging.
