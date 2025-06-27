@@ -27,16 +27,20 @@ function Home() {
   return (
     <div className="home-container">
       <header className="home-header">
-        <h1>Welkom bij RAcademic</h1>
-        <div className="user-info">
-          <span>Hallo, {user.display_name}!</span>
-          <div className="user-actions">
-            <Link to="/account" className="account-button">
-              Account
-            </Link>
-            <button onClick={handleLogout} className="logout-button">
-              Uitloggen
-            </button>
+        <div className="header-left">
+          <h1>Welkom bij RAcademic</h1>
+        </div>
+        <div className="header-right">
+          <div className="user-info">
+            <span>Hallo, {user.display_name}!</span>
+            <div className="user-actions">
+              <Link to="/account" className="account-button">
+                Account
+              </Link>
+              <button onClick={handleLogout} className="logout-button">
+                Uitloggen
+              </button>
+            </div>
           </div>
         </div>
       </header>
