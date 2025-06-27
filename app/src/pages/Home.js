@@ -58,6 +58,14 @@ function Home() {
             <h3>Deel Bron</h3>
             <p>Help anderen door een bron te delen die jou heeft geholpen</p>
           </Link>
+          
+          {user.is_admin && (
+            <Link to="/admin" className="action-card admin-card">
+              <div className="card-icon">⚙️</div>
+              <h3>Admin Dashboard</h3>
+              <p>Beheer gebruikers en geblokkeerde e-mails</p>
+            </Link>
+          )}
         </div>
         
         <div className="features-section">

@@ -6,7 +6,9 @@ import Home from './pages/Home';
 import Account from './pages/Account';
 import Bronnen from './pages/Bronnen';
 import BronToevoegen from './pages/BronToevoegen';
+import Admin from './pages/Admin';
 import ProtectedRoute from './components/ProtectedRoute';
+import AdminRoute from './components/AdminRoute';
 import './App.css';
 
 function App() {
@@ -35,6 +37,11 @@ function App() {
             <ProtectedRoute>
               <BronToevoegen />
             </ProtectedRoute>
+          } />
+          <Route path="/admin" element={
+            <AdminRoute>
+              <Admin />
+            </AdminRoute>
           } />
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
