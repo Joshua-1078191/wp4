@@ -69,7 +69,7 @@ maar zelf iets bedenken vind ik moeilijk.
 -Natuurlijk ook beetje van alles waar ik problemen mee had.
 
 Bronnen:
--https://youtu.be/GeulXZP_kZ8?si=-D-kobiLhUDUDqDE - Russishe React guide voor beginner met alle belangrijke functies
--https://www.youtube.com/watch?v=R_39q-vdOaE - Russishe praktijk video om eerste react website te bouwen en functies te begrijpen
+-Frontend Fundamentals, Александр Караджиков. (2024, 14 juni). Все что нужно знать о REACT для НОВИЧКА за 15 минут | Изучаем Реакт [Video]. YouTube. https://www.youtube.com/watch?v=GeulXZP_kZ8
+-Pomazkov JS. (2023, 1 februari). React для НОВИЧКОВ [2023]: первый проект на React JS | Как запустить приложение на React? [Video]. YouTube. https://www.youtube.com/watch?v=R_39q-vdOaE
 -PDF Files van OPS Toets - Daar staat alles over Docker en had daar door geen andere uitleg nodig.
 -Voor de rest - AI als iets fout gaat om fout te begrijpen en debugging.
