@@ -55,13 +55,18 @@ AI:
 Error Fixing
 Helpen met Css design
 Helpen met JS en React
+
 Bronnen:
--https://www.youtube.com/watch?v=mbsmsi7l3r4 - JWT Authentication tutorial
--https://www.youtube.com/watch?v=PKwu15ldZ7k - React Authentication Crash Course met Firebase And Routing
--https://www.youtube.com/@GreatStackDev - Veel videos van hem gekeken, heel leerzaam
+JWT Authentication tutorial
+-Web Dev Simplified. (2019, 21 september). JWT Authentication Tutorial - Node.js [Video]. YouTube. https://www.youtube.com/watch?v=mbsmsi7l3r4 
+
+Authentication Crash Course met Firebase And Routing
+-Web Dev Simplified. (2020, 10 oktober). React authentication crash course with firebase and routing [Video]. YouTube. https://www.youtube.com/watch?v=PKwu15ldZ7k
+
+Veel videos van hem gekeken, heel leerzaam
+GreatStack. (z.d.). YouTube. https://www.youtube.com/@GreatStackDev
 
 - Slava
-
 Ai:
 -Css design - Ben geen designer, ik begrijp wel de css code en kan hem heel makkelijk aanpassen via het F12 op browser.
 maar zelf iets bedenken vind ik moeilijk.
