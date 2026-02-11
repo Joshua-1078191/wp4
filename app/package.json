@@ -11,7 +11,7 @@
     "react-scripts": "5.0.1",
     "web-vitals": "^2.1.4",
     "react-router-dom": "^6.20.0",
-    "axios": "^1.6.2"
+    "axios": "^1.13.5"
   },
   "scripts": {
     "start": "craco start",
